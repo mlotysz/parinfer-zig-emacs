@@ -1,228 +1,75 @@
-= parinfer-rust-emacs
+= parinfer-zig-emacs
 
-____
+Parenthesis inference for Clojure in Emacs, implemented as a native dynamic module in Zig.
 
-A fork of https://github.com/eraserhd/parinfer-rust
+== About
 
-You can read about my reasons here for moving away from upstream here: https://github.com/justinbarclay/parinfer-rust/discussions/9
-____
+This is a fork of https://github.com/eraserhd/parinfer-rust[eraserhd/parinfer-rust], rewritten from Rust to Zig and stripped down to only support Emacs and Clojure. The original project supported Vim, Neovim, Kakoune, WebAssembly, CLI, and multiple Lisp dialects. This fork focuses on doing one thing well.
 
-Infer parentheses for Clojure, Lisp and Scheme.
+The Emacs integration is provided via https://github.com/justinbarclay/parinfer-rust-mode[parinfer-rust-mode.el]. This library is a drop-in replacement for the native module it expects.
 
-https://github.com/eraserhd/parinfer-rust
+For background on the fork, see: https://github.com/justinbarclay/parinfer-rust/discussions/9
 
-A full-featured, super fast implementation of https://shaunlebron.github.io/parinfer/[Shaun Lebron’s parinfer].
-This repo has Vim, Neovim, and Kakoune plugins, and an https://github.com/justinbarclay/parinfer-rust-mode[Emacs plugin] is available.
-The Rust library can be called from other editors that can load dynamic libraries.
+== Building
 
-This plugin, unlike others available for Vim, implements "smart" mode.
-Rather than switching between "paren" mode and "indent" mode, parinfer uses information about how the user is changing the file to decide what to do.
+Requires https://ziglang.org/[Zig] >= 0.14.0.
+
+....
+$ zig build
+....
+
+This produces `zig-out/lib/libparinfer_rust.so` (or `.dylib` on macOS).
 
 == Installing
 
-Dependencies:
+Build the library, then configure `parinfer-rust-mode` to use it:
 
-* https://www.rust-lang.org/en-US/install.html[rust] >= 1.70
-* `clang` and `libclang-dev` packages or equivalent for your OS
-
-
-=== Stand-alone CLI
-
-If you just want to run `parinfer-rust` from the command-line:
-
-....
-$ cargo build --release
-$ cargo install
-....
-
-=== Vim and Neovim
-
-==== `+pathogen+`
-
-If you are using Tim Pope’s `+pathogen+`:
-
-....
-$ cd ~/.vim/bundle
-$ git clone git@github.com:eraserhd/parinfer-rust.git
-$ cd ~/.vim/bundle/parinfer-rust
-$ cargo build --release
-....
-
-==== `+vim-plug+`
-
-[source,viml]
+[source,elisp]
 ----
-Plug 'eraserhd/parinfer-rust'
+(setq parinfer-rust-library "/path/to/parinfer-zig-emacs/zig-out/lib/libparinfer_rust.so")
 ----
 
-Then, build project using cargo:
+=== Doom Emacs
 
-....
-$ cd /path/to/parinfer-rust
-$ cargo build --release
-....
+In `packages.el`:
 
-Or, with optional automatic recompilation on update:
-
-[source,viml]
+[source,elisp]
 ----
-Plug 'eraserhd/parinfer-rust', {'do':
-        \  'cargo build --release'}
+(package! parinfer-rust-mode)
 ----
 
-If you are a NixOS user using Plug, you can use this command instead:
-[source,viml]
-----
-Plug 'eraserhd/parinfer-rust', {'do':
-        \ 'nix-shell --run \"cargo build --release \"'}
-----
+In `config.el`:
 
-==== `+Nix+`
-
-If you are a Nix user using Nix + Home Manager to build your vim plugins, you can add:
-
-[source,nix]
+[source,elisp]
 ----
-programs.neovim = {
-    [ pkgs.vimPlugins.parinfer-rust ];
-}
+(setq parinfer-rust-library "/path/to/parinfer-zig-emacs/zig-out/lib/libparinfer_rust.so")
+(with-eval-after-load 'parinfer-rust-mode
+  (setq parinfer-rust-supported-versions '("0.4.7" "0.5.0")))
 ----
 
-
-=== Kakoune
-
-==== `+plug.kak+`
-
-Add this to your `+kakrc+`
-
-[source,kak]
-----
-plug "eraserhd/parinfer-rust" do %{
-    cargo install --force --path .
-} config %{
-    hook global WinSetOption filetype=(clojure|lisp|scheme|racket) %{
-        parinfer-enable-window -smart
-    }
-}
-----
-
-Re-source your `+kakrc+` or restart Kakoune. Then run `+:plug-install+`.
-`+plug.kak+` will download, build and install plugin for you. Optionally
-add `+cargo clean+` line to the `+do+` block to clean plugin from build
-files, thus making it load a bit faster.
-
-==== Manual
-
-....
-$ cd ~/my-projects
-$ git clone git@github.com:eraserhd/parinfer-rust.git
-$ cd parinfer-rust
-$ make install
-$ cargo build --release
-$ cargo install
-....
-
-Add this to your `+kakrc+`
-
-[source,kak]
-----
-hook global WinSetOption filetype=(clojure|lisp|scheme|racket) %{
-    parinfer-enable-window -smart
-}
-----
-
-==== NixOS or nix-darwin
-
-[source,nix]
-----
-{
-  environment.systemPackages = let
-    myKakoune = pkgs.wrapKakoune pkgs.kakoune-unwrapped {
-      configure = {
-        plugins = with self.kakounePlugins; [
-          parinfer-rust
-        ];
-      };
-    };
-  in [ myKakoune ];
-}
-----
-
-Alternately, you can add your plugins as an overlay:
-
-[source,nix]
-----
-{
-  nixpkgs.overlays = [
-    (self: super: {
-      kakoune = super.wrapKakoune self.kakoune-unwrapped {
-        configure = {
-          plugins = with self.kakounePlugins; [
-            parinfer-rust
-          ];
-        };
-      };
-    })
-  ];
-
-  environment.systemPackages = [ pkgs.kakoune ];
-}
-----
-
-=== Emacs
-
-To install parinfer-rust for Emacs follow the instructions at
-https://github.com/justinbarclay/parinfer-rust-mode#installing[parinfer-rust-mode.el]
-
-== Building WebAssembly
-
-WebAssembly currently needs the ``nigthly'' toolchain:
-
-....
-$ rustup update
-$ rustup install nightly
-$ rustup target add wasm32-unknown-unknown --toolchain nightly
-$ cargo +nightly install cargo-web
-....
-
-It can then be built with:
-
-....
-$ cargo +nightly web build --release
-....
+Then run `doom sync` and restart Emacs.
 
 == Tests
 
-The CI server uses [Nix](https://nixos.org/nix/download.html) to make
-reproducible build and test environments.  It's a good idea to run tests with
-it.
-
 ....
-$ nix-build release.nix                  # Build and test everything
-$ cargo test                             # Run the native tests
-$ cargo +nightly web test                # Test the WebAssembly version
-$ vim --clean -u tests/vim/run.vim       # Test against locally-installed Vim
-$ ( cd tests/kakoune && ./run.sh )       # Test against locally-installed Kakoune
-$ nix-build release.nix -A vim-tests     # Test against Nix Vim package
-$ nix-build release.nix -A neovim-tests  # Test against Nix Neovim package
-$ nix-build release.nix -A kakoune-tests # Test against Nix Kakoune package
+$ zig build test               # Unit tests (algorithm, unicode, changes)
+$ zig build test-emacs         # Emacs integration tests (requires emacs)
 ....
 
-Vim tests are in a nice, readable format in `+tests/vim/test-cases.md+`.
-Please add tests for any new features (or even old ones!).
-You can set the `+VIM_TO_TEST+` environment variable to Vim’s path to test weird or different builds.
+== How it works
+
+https://shaunlebron.github.io/parinfer/[Parinfer] infers parentheses from indentation (and vice versa). Three modes:
+
+* *Indent mode* — infers closing parens from indentation
+* *Paren mode* — infers indentation from parens
+* *Smart mode* — picks the right behavior based on what the user is editing
 
 == Contributors
 
-This wouldn’t be possible without the work of others:
-
-* Shaun Lebron - Inventing parinfer and doing the math.
-* Case Nelson - Writing the nvim-parinfer, from which VimL code and some
-  inspiration was stolen.
-* Justin Barclay - Emacs module.
-* Michael Camilleri - User-defined comments.
-* Mitsuhiro Nakamura - Support for Common Lisp and Scheme.
-* ElKowar - User-defined string-delimiters and support for Yuck.
+* Shaun Lebron — invented parinfer
+* Jason Felice (eraserhd) — original Rust implementation
+* Justin Barclay — parinfer-rust-mode.el
+* Case Nelson, Michael Camilleri, Mitsuhiro Nakamura, ElKowar — contributions to the original
 
 == License
 

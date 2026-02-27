@@ -1,0 +1,14 @@
+.{
+    .name = .parinfer_zig_emacs,
+    .version = "0.5.0",
+    .fingerprint = 0xcefda5ff0b90a38c,
+    .minimum_zig_version = "0.14.0",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "include",
+        "tests",
+        "LICENSE.md",
+    },
+}

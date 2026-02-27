@@ -1,6 +1,2 @@
-/bin/
-/target/
-/node_modules/
-**/*.rs.bk
-/result
-/result-*
+.zig-cache/
+zig-out/

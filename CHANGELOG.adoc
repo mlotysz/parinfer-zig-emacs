@@ -1,150 +1,29 @@
-ChangeLog
-=========
+= Changelog
 
-https://github.com/eraserhd/parinfer-rust/compare/v0.4.3...HEAD[Unreleased]
----------------------------------------------------------------------------
+== 0.5.0
 
-* Support for Apple Silicon (by bumping dependency versions)
+Rewrite from Rust to Zig. Emacs-only, Clojure-only.
 
-=== Vim
+=== Changed
 
-* Vim errors when opening an unmodifiable buffer.
-* Fix of E523 regression (often triggered by using `.`), because Vim
-  changed the error to E578
-* Add support for [Dune](https://github.com/ocaml/dune)
+* Entire codebase rewritten from Rust to Zig (0.14+)
+* Removed all non-Emacs editor support (Vim, Neovim, Kakoune, CLI, WebAssembly)
+* Removed all non-Clojure language support (Lisp, Scheme, Guile, Janet, Racket, Yuck, Fennel, Dune)
+* Removed language configuration options (`comment_char`, `string_delimiters`, `lisp_vline_symbols`, `lisp_block_comments`, `guile_block_comments`, `scheme_sexp_comments`, `janet_long_strings`)
+* Removed Nix build system, Cargo, npm packaging
+* Pure-Zig Emacs module API bindings (no C header or `emacs` crate dependency)
+* Build system: `zig build` replaces `cargo build --release`
 
 === Added
 
-* Added support for [Yuck](https://github.com/elkowar/eww)
-* String delimiters can now be explicitly configured with the 
-  `string_delimiters` option.
-* Added -l, --language LANG option to easily specify language defaults.
-* The user can now set the character used to denote comments. The
-  character can be set on a global or per-buffer basis (using
-  `g:parinfer_comment_char` and `b:parinfer_comment_char` respectively).
-  By default, the global character is `;` and the character for Janet
-  buffers is `#`.
-* Add support for Janet's multiple-backtick-enclosed long strings.
-* Support for WebAssembly
-* More support for Common Lisp and Scheme:
-  - `|Enclosed symbols|`
-  - `#|Block comments|#`
-  - `#;(S-expression comments)`
-* Support for Guile's `#!block comments!#`
+* Emacs integration test suite (`zig build test-emacs`)
 
-=== Emacs
+=== Preserved
 
-* Compilation for Emacs is now optional. To enable it, run
-`cargo build --release --features emacs`
+* All 17 exported Emacs functions — drop-in compatible with parinfer-rust-mode
+* All three modes (indent, paren, smart)
+* JSON test cases for all modes (143 cases)
 
+== Previous releases
 
-https://github.com/eraserhd/parinfer-rust/compare/v0.4.2...v0.4.3[0.4.3]
-------------------------------------------------------------------------
-
-=== Fixed
-
-* Sometimes dlerror() is null on second invocation, causing SEGV instead
-  of an informative panic.
-* Fix for rust+glibc 2.30 test failures: self-reference code no longer
-  works in test because glibc 2.30 refuses to load position-independent
-  code or no-library code, so it is disabled.
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.4.1...v0.4.2[0.4.2]
-------------------------------------------------------------------------
-
-=== Fixed
-
-* Errors in build and release actions.
-
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.4.0...v0.4.1[0.4.1]
-------------------------------------------------------------------------
-
-=== Fixed
-
-* Test error "Could not get parinfer library path" (#57).
-
-=== Vim
-
-* Add support for loading with Vim/Neovim `packadd`
-* Add support for [Fennel](https://fennel-lang.org)
-* Add support for [Janet](https://janet-lang.org)
-
-=== Kakoune
-
-* Prevent Unicode characters from "locking up" the cursor.  Closes #55.
-  (This requires a version of Kakoune dated Nov 12, 2019 or later, with the
-  `-display-column` option to `:select`.)
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.3.1...v0.4.0[0.4.0]
-------------------------------------------------------------------------
-
-=== Releases
-
-* GitHub Actions test and release on Linux, Windows, and Mac
-
-=== Emacs
-
-* Added support for Emacs!!!
-
-=== Kakoune
-
-* Restore module support since packaged versions of Kakoune now have it.
-* Fix filetype detection for removing parinfer hooks
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.3.0...v0.3.1[v0.3.1]
--------------------------------------------------------------------------
-
-=== Changed
-
-* Kakoune script can't use modules yet.  (Packaged versions of Kakoune do
-  not support them yet.)
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.2.0...v0.3.0[v0.3.0]
--------------------------------------------------------------------------
-
-=== Changed
-
-* Kakoune script now uses modules.
-* Published to NPM, usable from JavaScript that supports WebAssembly with a
-  wrapper that works like the original JavaScript parinfer.
-* Result from C wrapper is now in thread-local storage, allowing concurrent
-  use from different threads.
-* Files have been reorganized so that `cargo build --release` is now run
-  at the top-level instead of in the `cparinfer` sub-directory.
-* Tests now run on Linux, CircleCI now runs our tests.
-
-https://github.com/eraserhd/parinfer-rust/compare/v0.1.0...v0.2.0[v0.2.0]
--------------------------------------------------------------------------
-
-=== Fixed
-
-* `>>` reindents the rest of the form
-* `E121: Undefined variable: w:parinfer_previous_cursor` after `:split`
-* `E122` after `:PlugUpdate` (#18)
-* `E523: not allowed here`
-* `vim-fireplace` compatibility:
-  * Fixed error after selecting expression with `cqq` (#15)
-
-=== Changed
-
-* Honors `g:parinfer_enabled` (instead of `g:parinfer_mode` of "off")
-* Is disabled during `:set paste`
-
-=== Added
-
-* `:ParinferOn` command
-* A logging facility and the `:ParinferLog` command
-* `g:parinfer_force_balance` option (defaults to off)
-
-=== Removed
-- `:ParinferToggleMode` (use `g:parinfer_mode` instead)
-
-0.1.0
------
-
-=== Vim Plugin
-
-==== Fixed
-
-* `c` commands do not smart-dedent trailing lines
+For releases prior to 0.5.0, see the https://github.com/eraserhd/parinfer-rust[upstream project].

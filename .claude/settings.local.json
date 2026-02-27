@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(cargo build:*)",
+      "Bash(nm:*)",
+      "Bash(objdump:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:codeberg.org)",
+      "Bash(zig version:*)",
+      "Bash(zig build:*)",
+      "Bash(python3:*)",
+      "Bash(emacs:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git:*)",
+      "Bash(gh release:*)"
+    ]
+  }
+}
